@@ -13,8 +13,11 @@ PDFLATEX	= pdflatex
 DVILUATEX	= dviluatex
 BIBTEX		= bibtex
 
-##### Intermediate files.
-AUX_FILES = $(addprefix $(OUTPUT_DIR)/, $(addsuffix .aux, $(INCLUDED_TEX_FILES)))
+CC_WITH_OPTIONS = \
+    TEXINPUTS="$(SRC_DIR):$(RES_DIR):$(THEME_DIR):" \
+    TEXMFOUTPUTS="$(OUTPUT_DIR)" \
+    $(CC) \
+    -output-directory=$(OUTPUT_DIR)
 
 ################################################################################
 
@@ -26,11 +29,7 @@ $(OUTPUT_DIR):
 	mkdir -p $@
 
 $(NAME): $(OUTPUT_DIR)
-	TEXINPUTS="$(SRC_DIR):" \
-    TEXMFOUTPUTS="$(OUTPUT_DIR)" \
-    $(CC) \
-    -output-directory=$(OUTPUT_DIR) \
-    $(NAME).tex
+	$(CC_WITH_OPTIONS) $@.tex
 ifeq ($(USE_BIB),true)
 	cd $(OUTPUT_DIR) && \
     BIBINPUTS="$(CURRENT_DIR)/$(SRC_DIR)" \
@@ -39,18 +38,10 @@ ifeq ($(USE_BIB),true)
     $(CC_BIB) \
     $(NAME) && \
     cd $(CURRENT_DIR)
-	TEXINPUTS="$(SRC_DIR):" \
-    TEXMFOUTPUTS="$(OUTPUT_DIR)/" \
-    $(CC) \
-    -output-directory=$(OUTPUT_DIR) \
-    $(SRC_DIR)/$(NAME).tex
+	$(CC_WITH_OPTIONS) $@.tex
 else
 endif
-	TEXINPUTS="$(SRC_DIR):" \
-    TEXMFOUTPUTS="$(OUTPUT_DIR)/" \
-    $(CC) \
-    -output-directory=$(OUTPUT_DIR) \
-    $(SRC_DIR)/$(NAME).tex
+	$(CC_WITH_OPTIONS) $@.tex
 
 zip: fclean $(NAME)
 	$(MAKE) clean
@@ -58,7 +49,7 @@ zip: fclean $(NAME)
 
 clean:
 	$(RM) $(OUTPUT_DIR)/$(NAME).{out,aux,toc,log,tex.backup,nav,snm,bbl,blg}
-	$(RM) $(AUX_FILES)
+	$(RM) $(OUTPUT_DIR)/texput.log
 
 # $(OUTPUT_DIR) is only removed when the directory is empty (never be the case
 # if it's the project root directory).
@@ -69,4 +60,4 @@ fclean: clean
 re: fclean $(NAME)
 ################################################################################
 
-.PHONY: all $(NAME) zip clean fclean re $(BBL_FILES)
+.PHONY: all $(NAME) zip clean fclean re
