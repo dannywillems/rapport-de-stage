@@ -1,0 +1,50 @@
+\documentclass[11pt,a4paper]{rapport-stage-umons}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[francais]{babel}
+\usepackage{amssymb,amsmath,amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+%\usepackage{hyperref}% hyperliens dans le PDF, pas pour impression
+
+\title{Stage chez Be Sport / Ocsigen}
+\author{Danny \textsc{Willems}}
+\date{2016--2017}
+\directeur{Christophe \textsc{Troestler}}
+\maitre{Vincent \textsc{Balat}}
+\discipline{Mathématiques}
+\institut{Département de mathématiques}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Vos macros
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Compile uniquement certains morceaux sans perdre les références
+% automatiques et la table des matières des parties déjà compilées :
+%\includeonly{introduction,chapitre1}
+
+\begin{document}
+% Éventuellement utiliser l'environnement « preface » pour avoir une
+% numérotation des pages en chiffres romains.
+
+\tableofcontents
+
+\input{presentation}
+\input{tasks}
+\input{extra_erasmus}
+\input{conclusion}
+
+% Si vous utilisez (conseillé) BibTeX pour votre bibliographie :
+\bibliographystyle{acm}
+\bibliography{rapport-stage} % si le fichier BibTeX est rapport-stage.bib
+
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% TeX-PDF-mode: t
+%%% End: 

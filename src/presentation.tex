@@ -1,0 +1,110 @@
+\section{Présentation de l'entreprise}
+
+\subsection{Be Sport}
+
+Be Sport\cite{besport} est une entreprise française développant un réseau social
+et un média centrés sur le sport. Initialement lancé en 2012 dans la Silicon
+Valley aux États-Unis, Be Sport s'est implanté à Paris fin 2015 sous la
+direction de Philippe Robert, principal investisseur, et de membres de l'équipe d'Ocsigen.
+
+Contrairement à la grande majorité des plateformes du sport qui se concentrent
+sur les professionnels, Be Sport est une plateforme regroupant tous les
+types d'acteurs du sport: amateurs, professionnels, clubs, fédérations, médias,
+etc.
+
+Avec Be Sport, il est possible de
+
+\begin{itemize}
+  \item suivre des sportifs, amateurs comme professionnels, des clubs et des
+    fédérations ;
+  \item se connecter avec d'autres personnes inscrites sur la plateforme ;
+  \item créer des événements sportifs (par exemple des tournois, des concours,
+    des championnats) et inviter ses connexions ;
+  \item discuter grâce à un tchat ;
+  \item suivre les dernières nouvelles des sports qui nous intéressent ;
+  \item partager des nouvelles, des résultats, etc.
+\end{itemize}
+
+Le trait de Be Sport qui m'a attiré pour le choix de mon stage est la
+technologie utilisée: OCaml et en particulier le framework web Ocsigen.
+
+\subsection{Ocsigen}
+
+Ocsigen\cite{ocsigen-website} est le plus connu des frameworks web écrit en
+OCaml.
+
+Lancé en fin d'année 2004 par Vincent Balat, Ocsigen\footnote{Pour OCaml site
+  generator.} souhaite apporter des solutions, innovantes à ses débuts, à
+plusieurs problématiques du développement d'applications web:
+
+\begin{enumerate}
+  \item utiliser un seul et unique langage (OCaml) pour développer la partie cliente et
+    la partie serveur. En effet, la plupart des architectures utilise deux
+    langages différents. Cela implique qu'un développeur web doit apprendre différents
+    langages. Du coté de l'entreprise, cela peut aussi impliquer de devoir
+    embaucher deux développeurs: un pour le coté client, souvent appelé
+    \og développeur front-end \fg, et un autre pour le coté serveur, souvent appelé
+    \og développeur back-end \fg.
+  \item pouvoir, dans un seul fichier, décrire les morceaux de code qui seront
+exécutés coté client et ceux qui seront exécutés coté serveur. Ceci est réalisé
+à travers une extension de syntaxe PPX d'OCaml.
+  \item permettre le partage de code ainsi que la communication entre la partie
+    cliente et la partie serveur.
+  \item typer statiquement (au moment de la compilation, non à l'exécution), les
+    programmes (coté serveur et coté client) ainsi que le code partagé entre les deux.
+  \item pouvoir utiliser les bibliothèques du langage de base (OCaml), que cela
+    soit coté client ou coté serveur.
+\end{enumerate}
+
+Bien que la plupart des points soit résolu indépendemment par plusieurs
+technologies (Node.js\cite{nodejs-website}, Meteor\cite{meteor-website},
+Scala\cite{scala-website} + Play\cite{play-website} +
+ScalaJS\cite{scalajs-website}, entre autres), aucune technologie unique répond à tous les besoins.
+
+Le projet Ocsigen répond à chacun de ces besoins, et même plus. Le projet est
+composé de plusieurs sous projets dont
+
+\begin{itemize}
+  \item un serveur web écrit entièrement en OCaml (Ocsigen Server\cite{ocsigen-server-github}).
+  \item un compilateur de bytecode OCaml vers JavaScript, js\_of\_ocaml\cite{ocsigen-js-of-ocaml-github}, qui
+    pemet d'écrire du code OCaml et de l'exécuter dans le navigateur web. En
+plus du compilateur, js\_of\_ocaml fournit un binding OCaml assez complet (bien
+que bas-niveau) au DOM et à la librairie standard JavaScript. La particularité
+de js\_of\_ocaml comparé à d'autres compilateurs/transpileurs OCaml vers
+JavaScript est le support de tout le langage OCaml, sans syntaxe particulière.
+  \item une bibliothèque implémentant le standard XML de manière typée en OCaml,
+TyXML\cite{ocsigen-tyxml-github}. Cela permet d'écrire en particulier de l'HTML
+typé et de respecter ainsi les normes W3C.
+  \item Eliom, qui permet d'écrire, avec un haut niveau
+    d'abstraction et des concepts innovants, des applications web
+client-serveurs. Eliom dépend de Ocsigen Server, TyXML et js\_of\_ocaml et
+fournit une abstraction plus haut niveau des API de ces différents projets.
+  \item Ocsigen Toolkit, un ensemble de widgets web (différents boutons, des
+    menus, des icones de chargements, etc) permettant d'utiliser les
+    particularités d'exécution client-serveur d'Eliom.
+  \item Ocsigen Start qui fournit un template Eliom avec un ensemble de
+    bibliothèques pour gérer des utilisateurs, des groupes d'utilisateurs, des
+    notifications push, etc. Ocsigen Start permet également de développer des
+    applications mobiles, le tout en OCaml.
+\end{itemize}
+
+Ayant passé beaucoup de temps à apprendre et à travailler sur Eliom et Ocsigen
+Start, l'apprentissage et la maitrise de ces deux bibliothèques ont eu une
+grande importance lors de mon stage. 
+
+\subsubsection*{Eliom}
+
+Le but principal d'Ocsigen est d'unifier le développement de la partie serveur
+et la partie cliente en utilisant un langage unique et typé statiquement.
+
+Eliom est le centre du projet Ocsigen (avec comme dépendance Ocsigen Server et
+js\_of\_ocaml) et constitue la solution aux besoins donnés ci-dessus.
+
+\paragraph*{Séparation du code client et du code serveur}
+
+
+\subsubsection*{Ocsigen Start}
+
+Anciennement eliom-base-app\footnote{Le nom fut changé pendant la période de
+  mon stage.}, le projet Ocsigen Start\cite{ocsigen-start-github} est la base de
+l'application Be Sport, distribué sur GitHub sous licence LGPL.
