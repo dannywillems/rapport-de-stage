@@ -42,6 +42,7 @@ ifeq ($(USE_BIB),true)
 else
 endif
 	$(CC_WITH_OPTIONS) $@.tex
+	ln -s $(OUTPUT_DIR)/$@.pdf $(CURRENT_DIR)/$@.pdf
 
 zip: fclean $(NAME)
 	$(MAKE) clean
