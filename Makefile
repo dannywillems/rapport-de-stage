@@ -28,7 +28,7 @@ all: $(NAME)
 $(OUTPUT_DIR):
 	mkdir -p $@
 
-$(NAME): $(OUTPUT_DIR)
+$(NAME): $(OUTPUT_DIR) clean-symlink
 	$(CC_WITH_OPTIONS) $@.tex
 ifeq ($(USE_BIB),true)
 	cd $(OUTPUT_DIR) && \
@@ -48,13 +48,16 @@ zip: fclean $(NAME)
 	$(MAKE) clean
 	zip -r $(NAME).zip $(OUTPUT_DIR)/* -x *.git*
 
+clean-symlink:
+	-$(RM) $(CURRENT_DIR)/$(NAME).pdf
+
 clean:
 	$(RM) $(OUTPUT_DIR)/$(NAME).{out,aux,toc,log,tex.backup,nav,snm,bbl,blg}
 	$(RM) $(OUTPUT_DIR)/texput.log
 
 # $(OUTPUT_DIR) is only removed when the directory is empty (never be the case
 # if it's the project root directory).
-fclean: clean
+fclean: clean clean-symlink
 	$(RM) $(OUTPUT_DIR)/$(NAME).{pdf,zip,dvi}
 	-rmdir $(OUTPUT_DIR)
 
