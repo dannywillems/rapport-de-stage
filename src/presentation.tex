@@ -3,8 +3,8 @@
 \subsection{Be Sport}
 
 Be Sport\cite{besport} est une entreprise française développant un réseau social
-et un média centrés sur le sport. Initialement lancé en 2012 dans la Silicon
-Valley aux États-Unis, Be Sport s'est implanté à Paris fin 2015 sous la
+et un média centrés sur le sport. Initialement lancé en 2012 à San Francisco
+aux États-Unis, Be Sport s'est implanté à Paris fin 2015 sous la
 direction de Philippe Robert, principal investisseur, et de membres de l'équipe d'Ocsigen.
 
 Contrairement à la grande majorité des plateformes du sport qui se concentrent
@@ -22,7 +22,8 @@ Avec Be Sport, il est possible de
     des championnats) et inviter ses connexions ;
   \item discuter grâce à un tchat ;
   \item suivre les dernières nouvelles des sports qui nous intéressent ;
-  \item partager des nouvelles, des résultats, etc.
+  \item partager des nouvelles, des résultats ;
+  \item et bien plus : de nouvelles fonctionnalités sont ajoutées très régulièrement.
 \end{itemize}
 
 Le trait de Be Sport qui m'a attiré pour le choix de mon stage est la
@@ -33,13 +34,13 @@ technologie utilisée: OCaml et en particulier le framework web Ocsigen.
 Ocsigen\cite{ocsigen-website} est le plus connu des frameworks web écrit en
 OCaml.
 
-Lancé en fin d'année 2004 par Vincent Balat, Ocsigen\footnote{Pour OCaml site
-  generator.} souhaite apporter des solutions, innovantes à ses débuts, à
+Lancé en fin d'année 2004 par Vincent Balat, Ocsigen\footnote{Pour \og OCaml site
+  generator \fg.} souhaite apporter des solutions, innovantes à ses débuts, à
 plusieurs problématiques du développement d'applications web:
 
 \begin{enumerate}
   \item utiliser un seul et unique langage (OCaml) pour développer la partie cliente et
-    la partie serveur. En effet, la plupart des architectures utilise deux
+    la partie serveur. En effet, la plupart des architectures utilisent deux
     langages différents. Cela implique qu'un développeur web doit apprendre différents
     langages. Du coté de l'entreprise, cela peut aussi impliquer de devoir
     embaucher deux développeurs: un pour le coté client, souvent appelé
@@ -47,29 +48,35 @@ plusieurs problématiques du développement d'applications web:
     \og développeur back-end \fg.
   \item pouvoir, dans un seul fichier, décrire les morceaux de code qui seront
 exécutés coté client et ceux qui seront exécutés coté serveur. Ceci est réalisé
-à travers une extension de syntaxe PPX d'OCaml.
-  \item permettre le partage de code ainsi que la communication entre la partie
-    cliente et la partie serveur.
+à travers une extension de syntaxe PPX d'OCaml\footnote{Gabriel Radanne, aka
+  Drup, travaille sur un compilateur Eliom, voir
+  \cite{ocsigen-eliomlang-github}. Ce compilateur fournit plus de possibilités
+  que PPX.}.
+  \item permettre d'injecter du code serveur dans la partie cliente.
+    L'utilité de cette fonctionnalité est de laisser le serveur évaluer
+des expressions pour décharger le client de certains calculs qui pourraient être
+lourds.
   \item typer statiquement (au moment de la compilation, non à l'exécution), les
-    programmes (coté serveur et coté client) ainsi que le code partagé entre les deux.
+    programmes (coté serveur et coté client) ainsi que le code injecté.
   \item pouvoir utiliser les bibliothèques du langage de base (OCaml), que cela
     soit coté client ou coté serveur.
 \end{enumerate}
 
-Bien que la plupart des points soit résolu indépendemment par plusieurs
+Bien que la plupart des points soient résolus indépendemment par plusieurs
 technologies (Node.js\cite{nodejs-website}, Meteor\cite{meteor-website},
 Scala\cite{scala-website} + Play\cite{play-website} +
-ScalaJS\cite{scalajs-website}, entre autres), aucune technologie unique répond à tous les besoins.
+ScalaJS\cite{scalajs-website}, entre autres), aucune technologie unique, à ma
+connaissance, répond à tous les besoins.
 
 Le projet Ocsigen répond à chacun de ces besoins, et même plus. Le projet est
 composé de plusieurs sous projets dont
 
 \begin{itemize}
-  \item un serveur web écrit entièrement en OCaml (Ocsigen Server\cite{ocsigen-server-github}).
+  \item Ocsigen Server\cite{ocsigen-server-github}, un serveur web écrit entièrement en OCaml.
   \item un compilateur de bytecode OCaml vers JavaScript, js\_of\_ocaml\cite{ocsigen-js-of-ocaml-github}, qui
     pemet d'écrire du code OCaml et de l'exécuter dans le navigateur web. En
 plus du compilateur, js\_of\_ocaml fournit un binding OCaml assez complet (bien
-que bas-niveau) au DOM et à la librairie standard JavaScript. La particularité
+que bas-niveau) au DOM et à la librairie standard JavaScript. Une particularité
 de js\_of\_ocaml comparé à d'autres compilateurs/transpileurs OCaml vers
 JavaScript est le support de tout le langage OCaml, sans syntaxe particulière.
   \item une bibliothèque implémentant le standard XML de manière typée en OCaml,
@@ -77,7 +84,7 @@ TyXML\cite{ocsigen-tyxml-github}. Cela permet d'écrire en particulier de l'HTML
 typé et de respecter ainsi les normes W3C.
   \item Eliom, qui permet d'écrire, avec un haut niveau
     d'abstraction et des concepts innovants, des applications web
-client-serveurs. Eliom dépend de Ocsigen Server, TyXML et js\_of\_ocaml et
+client-serveur. Eliom dépend de Ocsigen Server, TyXML et js\_of\_ocaml et
 fournit une abstraction plus haut niveau des API de ces différents projets.
   \item Ocsigen Toolkit, un ensemble de widgets web (différents boutons, des
     menus, des icones de chargements, etc) permettant d'utiliser les
@@ -92,19 +99,92 @@ Ayant passé beaucoup de temps à apprendre et à travailler sur Eliom et Ocsige
 Start, l'apprentissage et la maitrise de ces deux bibliothèques ont eu une
 grande importance lors de mon stage. 
 
-\subsubsection*{Eliom}
+\subsubsection{Eliom}
 
 Le but principal d'Ocsigen est d'unifier le développement de la partie serveur
 et la partie cliente en utilisant un langage unique et typé statiquement.
 
-Eliom est le centre du projet Ocsigen (avec comme dépendance Ocsigen Server et
+Eliom est le centre du projet Ocsigen (avec comme dépendances Ocsigen Server et
 js\_of\_ocaml) et constitue la solution aux besoins donnés ci-dessus.
+Eliom fournit également une interface de haut
+niveau pour des besoins usuels en programmation web comme un système de
+notifications (\verb|Eliom_notif|), de création d'HTML réactif
+(\verb|Eliom_shared.React.S|) et des données réactives
+(\verb|Eliom_shared.ReactiveData|), d'échange de données entre clients
+(\verb|Eliom_bus|), de créations de services pour les routes de l'application et
+des enregistrements de ces services (\verb|Eliom_service| et
+\verb|Eliom_registration|), un système de gestion de cookies
+(\verb|Eliom_cookies|), création de formulaires typés
+(\verb|Eliom_form|), un système de RPC (en utilisant la fonction \\
+\verb|Eliom_client.server_function|) et bien plus.
 
-\paragraph*{Séparation du code client et du code serveur}
+De plus, depuis Eliom 6, il est possible d'écrire des applications mobiles.
 
+En utilisant PPX, Eliom ajoute de la syntaxe au langage OCaml usuel.\footnote{Pour plus
+d'informations sur le langage Eliom, voir \cite{gabriel-radanne-paper-eliom}.}
+Eliom fournit également des outils pour simplifier la compilation:
+\begin{itemize}
+  \item \verb|eliomc| pour compiler du code serveur en bytecode.
+  \item \verb|eliomopt| pour compiler du code serveur en natif.
+  \item \verb|js_of_eliom| pour compiler en JavaScript le code client.
+\end{itemize}
 
-\subsubsection*{Ocsigen Start}
+Pour différentier les fichiers contenant du code Eliom et ceux qui n'en \\
+contiennent pas, de nouvelles extensions de fichiers sont utilisées: \verb|eliomi|
+pour l'équivalent de \verb|mli| et \verb|eliom| pour \verb|ml|.
+
+Pour définir une expression qui sera évaluée coté serveur (resp. coté client), la syntaxe
+\verb|let%server v = 42| (resp. \verb|let%client v = 42|) est utilisée. Il
+existe aussi la syntaxe \verb|let%shared v = 42| pour définir en même temps une
+même expression coté client et coté serveur. L'équipe d'Ocsigen travaille
+également sur un nouveau compilateur Eliom, voir
+\cite{ocsigen-eliomlang-github}, qui fournit, entre autres, la même extension
+pour les types (\verb|type%server t = int|) et le langage de modules
+(\verb|module%server M = struct type t = int end|), non disponibles actuellement avec PPX.
+
+Il est également possible de définir des valeurs coté serveur et d'y accéder
+coté client avec la syntaxe \verb|let%client v = ~%server_value| où \\
+\verb|server_value| est une valeur définie coté serveur.
+
+Une dernière possibilité avec Eliom est, à l'inverse d'évaluer une expression
+coté serveur et la récupérer coté client, il est possible, dans une expression
+coté serveur, de calculer une expression coté client et d'en récupérer le
+résultat coté serveur.
+La syntaxe utilisée est \verb|let%server x = [%client 5 + 2]|.
+
+Si plusieurs xpressions doivent être évaluées coté serveur (resp. coté client),
+il est possible d'utiliser la syntaxe \verb|[%%server expressions]| (resp. \\
+\verb|[%%client expressions]|) dans les fichiers \verb|eliom| et la syntaxe \\
+\verb|[%%server.start] expressions| (resp. \\ \verb|[%%client.start] expressions|)
+dans les fichiers \verb|eliomi|.
+
+\subsubsection{Ocsigen Start}
 
 Anciennement eliom-base-app\footnote{Le nom fut changé pendant la période de
   mon stage.}, le projet Ocsigen Start\cite{ocsigen-start-github} est la base de
 l'application Be Sport, distribué sur GitHub sous licence LGPL.
+
+A travers ce projet, l'équipe d'Ocsigen souhaite fournir un ensemble de
+fonctions permettant de créer très facilement un prototype d'une application web
+et mobile. Cela implique, en partie, de gérer très facilement une base de
+données d'utilisateurs, de groupes, d'emails, fournir des services usuels
+(inscriptions d'utilisateurs, envoi d'email de confirmation, connexion,
+modification de données personnelles), permettre de gérer plusieurs emails par
+utilisateurs, le redimensionnement et cropping de photos et fournir des systèmes
+de sessions et de cache.
+
+En plus de la bibliothèque, Ocsigen Start fournit un un template qui montre
+comment utiliser les diverses fonctionnalités d'Eliom comme les
+RPC\footnote{Remote Procedure Calls}, les notifications à travers
+\verb|Eliom_notif| mais aussi les fonctions de la bibliothèque.
+
+Le template fourni permet également d'avoir une application mobile (Android,
+iOS, Windows Phone) de l'application web développée. Le framework web et mobile
+Cordova est utilisé pour l'application Android et iOS tandis que le concept
+d'Universal Web App est utilisée pour Windows Phone\footnote{Ceci en raison de
+  la faible compatibilité des plugins Cordova sous Windows Phone.}.
+
+Ocsigen Start réalise des choix pour les développeurs comme PostgreSQL ou SASS
+(pré-processeur CSS).
+Dans les prochaines versions, Ocsigen Start devrait être compatible avec
+différents gestionnaires de bases de données comme MySQL.

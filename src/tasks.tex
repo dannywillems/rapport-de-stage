@@ -8,8 +8,8 @@ majoritairement dans Ocsigen Start, étaient ajoutées aux tâches principales.
 
 Pendant tout mon stage, je n'ai jamais contribué directement au code de la
 plateforme Be Sport: le travail que j'effectuais était principalement dans Ocsigen Start
-(que Be Sport utilise comme base) ou dans un projet séparé (comme pour les push
-notifications) et celui-ci était utilisé par un développeur de Be Sport comme
+(que Be Sport utilise comme base) ou dans un projet séparé (comme pour les
+notifications push) et celui-ci était utilisé par un développeur de Be Sport comme
 base. Cette méthode a été choisie par Vincent Balat pour que je puisse être
 productif plus rapidement car sinon, j'aurais du, en plus du projet Ocsigen qui
 est déjà assez conséquent, comprendre l'ensemble de Be Sport.
@@ -28,10 +28,10 @@ nouveau, certaines informations comme son adresse email, son nom, son prénom et
 un mot de passe et sans pour autant accéder à
 toutes les données possédées par Be Sport sur l'utilisateur (comme certains
 sites font avec Facebook, LinkedIn, Twitter ou encore GitHub).\footnote{Par la
-suite (après 6 semaines de stage), les
+suite, les
   priorités de Be Sport ont changé
   et j'ai donc laissé de côté cette partie pour me focaliser sur Ocsigen Start
-  et les push notifications, tâches décrites ci-dessous. Vers la fin de mon
+  et les notifications push, tâches décrites ci-dessous. Vers la fin de mon
   stage, le travail a été repris pour mettre à jour avec les changements
   d'Ocsigen Start. Cependant, l'implémentation, bien que très avancée, n'est pas
 encore finie.}.
@@ -58,22 +58,23 @@ l'implémenter. La bibliothèque est disponible sur le GitHub de Be
 Sport\cite{ocaml-jwt-github} ainsi que
 dans OPAM sous le nom \emph{jwt} et est distribué sous licence LGPL.
 
-Un JSON Web Token est composé de trois éléments séparés par des points:
+Un JSON Web Token est une chaine de caractères composé de trois éléments séparés
+par des points:
 \begin{itemize}
   \item un \textit{header} comprenant le type du jeton (dans notre cas
     \emph{JWT}) et l'algorithme de chiffrement (par exemple
-    \emph{HMAC-SHA-256}, identifié par \emph{HS256})
+    \emph{HMAC-SHA-256}, identifié par \\ \emph{HS256})
     représenté par un JSON. Le premier élément du JSON Web Token est le
     résultat de ce JSON en utilisant l'encodage base64\cite{rfc-base64}.
   \item les \textit{claims} ou le \textit{payload} comprenant les demandes ou
     des méta données devant être transférées. Le résultat est aussi représenté
     par un JSON encodé en utilisant l'encodage base64.
-  \item la \textit{signature} qui rend ce standard sécurisé pour la transmission
-    des données. Elle consiste en le résultat du chiffrement (par l'algorithme de
-    chiffrement donné dans le header) de la concaténation
-    des deux encodages base64 précédant séparé par un point. Si l'algorithme de
+  \item la \textit{signature} qui fournit à ce standard un niveau de sécurité
+    pour la transmission des données. Elle consiste en le résultat du chiffrement
+    (par l'algorithme de chiffrement donné dans le header) de la concaténation des
+    deux encodages base64 précédents séparés par un point. Si l'algorithme de
     chiffrement utilisé est \emph{HS256}, une clef secrète est utilisée pour
-    chiffrer. La chaîne de caractères résultante du chiffrage est encodé en
+    chiffrer. La chaîne de caractères résultante du chiffrage est encodée en
     utilisant l'encodage base64 et représentera le dernier élément du jeton.
 \end{itemize}
 
@@ -87,7 +88,7 @@ Un JSON Web Token est composé de trois éléments séparés par des points:
     n'est pas donnée dans ce cas.}
 \end{figure}
 
-Un exemple complet est donné sur le site officiel du standard.\cite{official-jwt-website}
+Un exemple complet est donné sur le site officiel du standard\cite{official-jwt-website}.
 
 La bibliothèque OCaml \emph{jwt}\cite{ocaml-jwt-github} fournit une interface
 simple pour créer, chiffrer et déchiffrer un JWT.
@@ -115,16 +116,341 @@ valeur \verb|empty_payload| et la fonction \verb|add_claim|.
 Pour obtenir les différentes claims d'un payload, la fonction \verb|find_claim|
 peut être utilisée.
 
-\subsection{Crawling de données et binding à NodeJS et NightmareJS}
+\subsection{Récupération de données, json2ical et binding à \\ Node.js  et Nightmare}
+
+Comme expliqué dans la présentation de Be Sport, l'application permet d'accéder
+à toutes les nouvelles des sports qui vous intéressent comme les résultats des
+derniers matches ou les prochaines compétitions ou tournois.
+Afin de fournir le plus de nouvelles à ses utilisateurs, Be Sport récupère les
+données de différents sites comme \href{https://eurosport.fr}{Eurosport} pour le
+football ou \href{https://atpworldtour.com}{atpworldtour} pour le tennis.
+Cette tâche nécessite d'analyser comment le site visé fonctionne et automatiser
+la visualisation des données souhaitées.
+
+Dans les premiers jours, il m'a été demandé de récupérer les résultats provenant
+du site \verb|www.atpworldtour.com|.
+Une première version stable a été écrite à l'aide de JavaScript et de
+Nightmare\cite{nightmare-website}. Cette version exportait les données vers un
+format JSON. Cependant, le format demandé par Be Sport était
+iCalendar avec des champs spécifiques.
+Un match, une compétition ou un résultat est représenté par un événement
+iCalendar (composant \verb|VEVENT|) et possède obligatoirement un ID. Les
+matches sont représentés comme des sous-événements des compétitions et
+possèdent, dans le format iCalendar, un champ supplémentaire
+(\verb|X-PARENT-ID|) afin de pouvoir retrouver la compétition dont les matches
+proviennent.
+
+\subsubsection*{json2ical}
+
+Après avoir remarqué que d'autres scripts utilisés pour récupérer les données
+d'autres sites travaillaient d'abord en JSON pour ensuite convertir au format
+iCalendar, j'ai décidé d'écrire une bibliothèque, \emph{json2ical}, qui permet
+de convertir un fichier donné au format JSON dans le format iCalendar.
+Cette bibliothèque, écrite en JavaScript avec Node.js, exporte une unique
+fonction, \verb|json_to_ical| qui prend en paramètre:
+
+\begin{itemize}
+  \item un objet JavaScript (représentant le JSON).
+  \item (optionnel) un ensemble de clef-valeur permettant de définir comment les champs JSON
+    vont être convertis dans le format iCalendar. Par défaut, chaque champ du
+    JSON est préfixé par \verb|X-| (norme utilisée pour Be Sport). Dans tous les
+    cas, le nom du champ est mis en majuscule.
+  \item (optionnel) un entier représentant l'ID du premier événement.
+\end{itemize}
+
+Par exemple, avec la configuration par défaut,
+
+\begin{lstlisting}
+  {
+    "summary": "Hello Be Sport",
+    "start": 2048,
+    "finish": 4096
+  }
+\end{lstlisting}
+
+sera transformé en
+
+\begin{lstlisting}
+    BEGIN:VEVENT
+    X-SUMMARY:Hello Be Sport
+    X-START:2048
+    X-FINISH:4096
+    X-ID:1
+    END:VEVENT
+\end{lstlisting}
+
+et avec la configuration
+
+\begin{lstlisting}
+  {
+    "title": "summary",
+    "begin": "dtstart",
+    "end": "dtend"
+  }
+\end{lstlisting}
+
+cela donnera
+
+\begin{lstlisting}
+  BEGIN:VEVENT
+  SUMMARY:Hello BeSport
+  DTSTART:2048
+  DTEND:4096
+  X-ID:1
+  END:VEVENT
+\end{lstlisting}
+
+pour le JSON initial
+\begin{lstlisting}
+  {
+    "title": "Hello BeSport",
+    "begin": "2048",
+    "end": "4096"
+  }
+\end{lstlisting}
+
+\subsubsection*{Binding à Node.js et Nightmare}
+
+Un autre stagiaire présent, Omar Chebib, a aussi du réaliser un script pour
+récupérer des données sur \href{https://eurosport.com}{Eurosport} avec
+JavaScript et Nightmare. Nous avons tous les deux remarqué qu'il nous était
+très difficile de déboguer et d'avoir un script robuste sans le typage statique
+d'OCaml.
+
+Pendant deux journées, nous avons alors pris l'initiative de réaliser une deuxième version de
+nos scripts respectifs en utilisant cette fois-ci OCaml et le compilateur
+\emph{js\_of\_ocaml}. Pour cela,
+nous avons écrit un binding haut niveau vers Node.js et Nightmare en utilisant
+\emph{gen\_js\_api}\cite{gen-js-api-github}.
+
+Les bindings\cite{besport-ocaml-node-github,
+  besport-ocaml-node-nightmare-github} sont disponibles sur le GitHub de Be Sport sous licence
+LGPL. Bien que partiels,
+ceux-ci sont fonctionnels et nous ont permis d'améliorer notre productivité.
+
+\subsubsection*{Interface OCaml pour l'importation dans la base de données}
+
+Egalement avec Omar Chebib, après avoir fini notre script de récupération de
+données, il nous a été demandé d'importer les données dans la base de données de
+Be Sport. Les données récupérées comprennent les championnats, le nom des
+équipes ainsi que le nom des joueurs et doivent être importées selon un schéma
+de tables bien définies. Chaque site a ses propres tables.
+
+A la place de réaliser un script d'importation pour chaque site, nous avons une
+nouvelle fois pris l'initiative d'écrire une interface générique par sport.
+Par exemple, pour le football, les données devant être récupérées sont le plus
+souvent dans le même format:
+\begin{itemize}
+  \item un événement parent représentant le championnat.
+  \item des sous-événements représentant les matches.
+  \item pour chaque match, le nom des équipes, le résultat, les joueurs, les
+    buts, les cartes jaunes et rouges.
+\end{itemize}
+
+Nous avons écrit une bibliothèque OCaml et un binaire abstrayant les
+données.
+Sur la plupart des sites, les scripts récupèrent les données par matches afin de
+pouvoir en récupérer plusieurs en parallèle et ainsi accélérer l'ensemble
+du processus. La
+bibliothèque fournit un type \verb|Fixture.t| comprenant toutes les informations
+relative à un match et est utilisée avec le binding à
+Nightmare et est compilée en JavaScript pour récupérer les données. Une fonction
+\verb|Fixture.t_to_js| donne la représentation JavaScript devant être
+utilisée pour l'importation. Cette représentation JavaScript est alors écrite
+dans un fichier au format JSON.
+
+Le binaire, nommé \verb|bs-import|, prend en paramètre le JSON précédent et se charge d'importer l'ensemble des données dans la base de données.
+
+Au final, le procédé de récupération fonctionne de la manière suivante:
+
+\begin{enumerate}
+\item Analyse du site.
+\item Utilisation du binding à Nightmare pour accéder aux données.
+  \item Abstraction des données d'un match à travers le type \verb|Fixture.t| et
+    exportation dans un fichier au format JSON.
+\end{enumerate}
+
+Et l'importation de données se résume en l'utilisation du binaire de la manière
+suivante:
+
+\verb|bs-import [nom_du_championnat] -f [fichier_json]|.
+
+Cette dernière version permet de se focaliser uniquement sur le parsing du site
+web et non sur la représentation des données ou encore de l'importation dans la
+base de données.
+De plus, pour permettre la récupération de données d'autres sports, il suffit
+d'écrire le type OCaml correspondant, la fonction exportant en JSON et les
+fonctions travaillant sur la base de données.
 
 \subsection{Ocsigen Start}
 
+A partir de la huitième semaine, il m'a été demandé de travailler uniquement sur
+Ocsigen Start et ce jusqu'à la fin de mon stage.
 
-\subsubsection*{Push notifications}
+Beaucoup de personnes ont travaillé sur Ocsigen Start. Cependant, à
+travers l'évolution des fonctionnalités et l'ajout de nouvelles, aucune analyse
+n'avait été réalisée pour supprimer les fichiers ou fonctions inutiles ou encore
+réorganiser le code pour éviter la duplication.
 
-\subsubsection*{i18n}
+Après avoir analysé la bibliothèque et le fonctionnement du template dans son
+ensemble, j'ai effectué un premier nettoyage et une première réorganisation du
+code. Cela a permis de remarquer qu'une partie des fichiers de l'application
+mobile était inutile et alourdissait l'installateur résultant.
 
 \subsubsection*{Tâches mineures}
+
+Une partie du travail réalisé sur Ocsigen Start consistait en des tâches prenant
+quelques heures à quelques jours pour certaines. En voici une liste,
+non-exhaustive:
+
+\begin{itemize}
+\item Réorganisation des Makefiles. Le template d'Ocsigen Start fonctionne avec
+  des Makefiles pour l'ensemble du processus de compilation. J'ai choisi de
+  déplacer toute la configuration du template dans un Makefile
+  \verb|Makefile.options|, déplacer les cibles relatives à la base de données
+  dans un Makefile \verb|Makefile.db|, épurer les makefiles de cibles superflues
+  ou plus utilisées.
+
+  \item Permettre l'utilisation de SASS comme pré-processeur CSS. En résulte un
+    nouveau Makefile relatif au style s'appelant \verb|Makefile.style| et une
+    option \verb|USE_SASS| qui permet de choisir ou non d'utiliser SASS.
+  \item Suppression de la dépendance à Ocsigen Widgets, ancêtre de Ocsigen Toolkit.
+  \item Utilisation du bon binaire \verb|pg_ctl| pour PostgreSQL sur Debian. Le
+    binaire \verb|pg_ctl| permet de gérer PostgreSQL et le chemin vers celui-ci
+    est différent que l'on soit sous Debian, Ubuntu ou Mac OSX.
+  \item Compatibilité des Makefiles au niveau des utilitaires BSD et GNU.
+    L'implémentation de certains binaires usuels comme \verb|sed| ou \verb|find|
+    est différente entre ceux fournis par défaut sur Mac OSX ou sur une
+    distribution GNU/Linux. Il m'a fallu rendre les Makefiles compatibles avec
+    BSD car ils ne l'étaient pas défaut et il était donc impossible d'utiliser
+    le template sur une machine disposant des outils BSD.
+  \item Remise en place de l'intégration continue avec Travis. Depuis quelques
+    mois, voire quelques années, l'intégration continue ne fonctionnait pas et
+    des emails étaient envoyés à chaque commit sur le dépot GitHub.
+  \item API de la bibliothèque. Une très grande partie de la bibliothèque
+    d'Ocsigen Start n'était pas documenté: j'ai alors passé plusieurs jours à la
+    documenter. Cela m'a permis d'avoir une vue plus globale sur tout le projet.
+  \item Utilisation des section \verb|let%section| à la place des blocs
+    \verb|[%%section.start]| et \verb|[%%section expr]|. L'utilisation de
+    \verb|let%section| rend le code plus lisible.
+  \item Suppression de la dépendance au binding à ImageMagick. Une seule
+    fonction dans le module \verb|Os_uploader| utilisait le binding pour la
+    sélection d'une partie d'une photo. La nouvelle solution proposée utilise
+    directement la ligne de commande \verb|convert|.
+  \item Style CSS de la gestion de plusieurs emails dans les préférences
+    utilisateurs.
+\end{itemize}
+
+\subsubsection*{Notifications push}
+
+Les notifications push sont des messages envoyés par le serveur (appelé alors
+\emph{serveur push}) à un client.
+Il est très courant de voir des notifications push sur les systèmes Android
+et iOS comme celles de Facebook, Twitter, ou encore les mises à jour des
+applications du Play Store.
+
+\begin{figure}
+  \centering
+  \includegraphics[height=100px]{push-notification-example-android.png}
+  \caption{Exemple de notification push sur Android.}
+\end{figure}
+
+D'un point de vue business et croissance, les notifications push
+augmentent la rétention des utilisateurs car elles motivent l'utilisateur à
+accéder à l'application.
+
+Tout en travaillant sur Ocsigen Start en général, il m'a été demandé de
+réfléchir à un système de notifications push pour l'application Be Sport, et de
+manière plus général, pour le projet Ocsigen Start.
+
+Bien qu'il soit possible de créer un serveur push,
+il est recommandé, pour des raisons de sécurité, de maintenance et de communauté
+d'utiliser un service de notifications push existant.
+
+Les systèmes d'exploitations mobiles les plus connus possèdent chacun leur propre
+service de notifications push:
+\begin{itemize}
+  \item Google - Firebase Cloud Messaging (\emph{FCM}), anciennement Google Cloud
+  Messaging (\emph{GCM}).
+  \item Apple - Apple Push Notifications service (\emph{APNs}).
+  \item Microsoft - Windows Push Notifications Services (\emph{WNS}).
+\end{itemize}
+
+Après avoir analysé les différentes solutions disponibles, je me suis orienté
+vers FCM pour les raisons suivantes:
+
+\begin{enumerate}
+  \item beaucoup d'applications l'utilisent depuis longtemps.
+  \item l'interface pour envoyer des notifications est simple: une URL à
+    laquelle il faut envoyer les données de la notification au format JSON.
+  \item il est possible, avec la même interface, d'envoyer les notifications sur
+    Android et iOS, ce qui rend unique FCM par rapport aux autres services cités.
+  \item il existe un plugin Cordova, \emph{phonegap-plugin-push}.
+  \item j'avais déjà réalisé un binding OCaml au plugin Cordova\cite{ocaml-cordova-plugin-push-notifications}.
+\end{enumerate}
+
+Le fonctionnement de FCM est représenté par la figure
+\ref{fig:push_notification_fcm_explanation}. Dans le cas où Be Sport souhaite
+envoyer une notification push à un utilisateur, voici comment cela se passe.
+Il y a trois acteurs: le smartphone, le serveur de notifications push de Google
+et le serveur de Be Sport.
+
+\begin{enumerate}
+  \item le smartphone demande un identifiant unique au serveur de Google. Cet
+    identifiant sera la signature de l'appareil et sera utilisée par le serveur
+    de Be Sport pour envoyer une notification sur cet appareil.
+  \item le serveur de Google renvoie l'identifiant unique.
+  \item l'appareil envoie l'identifiant sur le serveur de Be Sport pour que ce
+    dernier puisse cibler l'appareil.
+  \item dans le cas d'un besoin de persistance, l'identifiant est stocké dans la base de données.
+  \item lorsque Be Sport souhaite envoyer une notification à l'appareil, il
+    effectue une requête POST à l'URL \verb|https://fcm.googleapis.com/fcm/send|
+    en donnant en paramètre certaines options ainsi que l'identifiant de
+    l'appareil. Cette étape est abstraite par le module OCaml
+    \verb|Os_fcm_notif| disponible dans Ocsigen Start
+  \item dès que l'appareil est connecté au réseau internet, le serveur de Google
+    envoie la notification.
+\end{enumerate}
+
+\begin{figure}
+  \centering
+  \includegraphics[height=200px]{push-notification-diagram.png}
+  \caption{Fonctionnement des notifications push avec Firebase Cloud Messaging.}
+  \label{fig:push_notification_fcm_explanation}
+\end{figure}
+
+Une étape supplémentaire est réalisée par le plugin Cordova. Ce dernier reçoit
+la notification sous un format bien défini et construit la notification dans la
+barre de notifications.
+
+Le module \verb|Os_fcm_notif| implémente une interface OCaml simple pour
+communiquer avec FCM en utilisant le plugin \emph{phonegap-plugin-fcm}.
+
+Vincent Balat m'a ensuite demandé de créer une application mobile de test qui
+servira plus tard de base à Be Sport.
+Le projet est disponible sur GitHub \cite{ocsigen-mobile-push-notifications}. Il
+est développé en utilisant une version modifiée du template d'Ocsigen Start qui
+ne contient pas de base de données mais garde l'avantage du duo application
+mobile - application web.
+
+Cette démonstration permet d'envoyer différents types de notifications comme le
+montre les figures \ref{fig:push_notification_example_application_web} et \ref{fig:push_example_notification_application_result}.
+
+\begin{figure}
+  \centering
+  \includegraphics[height=200px]{push-notification-diagram.png}
+  \caption{Exemple d'application montrant différents types de notifications push}
+  \label{fig:push_notification_example_application_web}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[height=200px]{push-notification-diagram.png}
+  \caption{Notifications push reçu sur un smartphone Android.}
+  \label{fig:push_notification_example_application_result}
+\end{figure}
+
+\subsubsection*{i18n}
 
 \subsection{Personnelles}
 
