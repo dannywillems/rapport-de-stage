@@ -17,7 +17,8 @@ CC_WITH_OPTIONS = \
     TEXINPUTS="$(SRC_DIR):$(RES_DIR):$(THEME_DIR):" \
     TEXMFOUTPUTS="$(OUTPUT_DIR)" \
     $(CC) \
-    -output-directory=$(OUTPUT_DIR)
+    -output-directory=$(OUTPUT_DIR) \
+    --shell-escape
 
 ################################################################################
 
