@@ -40,38 +40,169 @@ plusieurs applications indépendantes. Par exemple, le tchat Be Sport, actuellem
 dépendant de Be Sport, pourrait être une application entièrement séparée de Be
 Sport sous le nom de \emph{Be Sport Chat}. Un autre exemple est une application
 \emph{Be Sport Location} qui permet de localiser un utilisateur connecté et
-lister les différents événements proches de lui. Ces deux applications ont
-besoin de créer des comptes pour retenir diverses informations, d'où l'intérêt
+lister les différents événements proches de lui en fonction de ses préférences. Ces deux applications ont
+besoin de créer des comptes pour retenir diverses informations, ou du moins,
+accéder à des données sauvegardées sur les serveurs de Be Sport, d'où l'intérêt
 de Be Sport Connect pour éviter de devoir créer des comptes séparés pour les
-deux applications en plus de Be Sport.
+deux applications en plus de Be Sport.\footnote{En réalité, tout est centralisé
+  dans l'application Be Sport. Ces exemples ne sont donnés qu'à titre d'exemple.}
+
+Comme pour la tâche des notifications push, décrite ci-dessous, j'ai été en
+charge d'analyser les différentes solutions et de choisir celle qui répondrait
+le mieux au problème.
+
+Après quelques recherches, j'ai choisi les standards OAuth2.0 et OpenID Connect.
+Ces deux standards, respectivement décrits dans la RFC 6749 et sur le site
+officiel d'OpenID, formalisent un système d'autorisation et d'authentification
+entre deux entités. Je me suis orienté vers ce choix car ces standards sont
+assez répendus, connus et utilisés par des grandes sociétés telles que Facebook,
+LinkedIn ou encore GitHub.
+
+\subsubsection*{OAuth2.0}
+
+OAuth2.0 est un standard décrivant un processus de communication entre deux
+serveurs ou deux applications pour autoriser l'échange de données d'un
+utilisateur. Dans ce processus, il y a 3 acteurs principaux:
+
+\begin{enumerate}
+  \item \emph{l'utilisateur}, aussi appelé dans le standard \emph{resource
+owner}. Cet acteur est souvent une personne physique (par exemple
+    un sportif inscrit sur Be Sport) qui souhaite autoriser les deux autres
+    acteurs à s'échanger des données.
+  \item le \emph{client} qui souhaite accéder à des données de l'utilisateur.
+    Dans le cas de Be Sport, ce serait par exemple Be Sport Location.
+  \item l'application ou le serveur sur lequel l'utilisateur héberge certaines
+    données comme un compte, des photos, des vidéos, etc. Cet acteur est souvent
+    divisé en deux avec le \emph{serveur d'autorisation} (\emph{authorization
+      server}), qui va autoriser le client à accéder aux données de l'utilisateur,
+    et \emph{le serveur de ressources} contenant les données de l'utilisateur
+(\emph{resource server}). En termes d'implémentation, les deux serveurs sont le
+plus souvent un unique service.
+\end{enumerate}
+
+Le processus est divisé en plusieurs étapes décrites sur la figure
+\ref{fig:abstract-flow-oauth2-0}. Il utilise les protocoles HTTP et HTTPS avec des
+paramètres GET et POST spécifiques. Pour expliquer l'ensemble du processus, prenons l'exemple où
+le client est Be Sport Location, le serveur d'autorisation et le serveur de
+ressources sont les serveurs de Be Sport et l'utilisateur est un sportif inscrit
+sur Be Sport.
+
+Grâce à Be Sport Location, le sportif souhaite accéder à tous les événements qui
+se déroulent autour de lui et en rapport avec ses préférences Be Sport.
+Pour cela, Be Sport Location a besoin d'accéder aux données du sportif hébergées
+sur les serveurs de Be Sport comme les sports qu'il pratique. C'est là
+qu'OAuth2.0 entre en jeu\footnote{4 méthodes sont décrites dans la RFC
+  d'OAuth2.0. J'ai fait le choix de ne décrire et d'implémenter que la plus utilisée,
+  c'est-à-dire celle utilisant un code d'autorisation. L'implémentation des
+  autres méthodes sont très proches et ne demandent pas beaucoup de changements.}. Les différentes étapes sont :
+
+\begin{figure}
+  \centering
+  \includegraphics[height=200px]{abstract-flow.png}
+  \caption{Fonctionnement de OAuth2.0}
+  \label{fig:abstract-flow-oauth2-0}
+\end{figure}
+
+\begin{enumerate}
+  \item Le client (Be Sport Location) demande à l'utilisateur (le sportif)
+    l'autorisation d'accéder aux données souhaitées. Cette étape est souvent
+    réalisée à travers une page HTML générée par l'application hébergeant les
+    données (ici Be Sport) où l'utilisateur est invité à rentrer ses données de
+    connexions et à autoriser le client.
+    La requête est accompagnée d'un paramètre nommé \emph{scope}: celui-ci
+    permet de définir à quelles données le client souhaite accéder. Dans notre
+    cas, cela pourrait être \emph{sports} pour les sports auxquels l'utilisateur
+    s'intéresse.
+  \item Le client ayant accepté, Be Sport renvoie un \emph{code d'autorisation}
+au client. Il est conseillé que ce code d'autorisation ait une période de
+validité très courte (de l'ordre de quelques minutes).
+  \item Le client utilise ce dernier pour demander au serveur d'autorisation un
+    \emph{jeton}. Pour vérifier que la demande d'accès est
+    toujours la même, le scope est demandé de nouveau. 
+  \item Le serveur d'autorisation vérifie que le code d'autorisation est valable
+    ainsi que le scope et si c'est le cas, renvoie un identifiant unique. Ce
+    jeton est le plus souvent une chaine de caractères
+    alpha-numeriques aléatoires et a une période de validité courte (10 minutes est
+    recommandé). A ce stade, le client est autorisé à accéder aux données, que
+    cela soit par l'utilisateur que par l'application Be Sport.
+  \item Le client envoie le jeton précédent au serveur contenant les données.
+  \item Le serveur contenant les données vérifie le jeton et renvoie les données.
+\end{enumerate}
+
+Pour des mesures de sécurité, il est conseillé que toutes les demandes soient
+chiffrées et utilisent le protocole HTTPS. De plus, un paramètre appelé
+\emph{state}, souvent une chaine de caractères alpha-numériques unique, est
+échangé à chaque requête afin de reconnaitre la demande. 
+
+\subsubsection*{OpenID Connect}
+
+OpenID Connect est basé sur OAuth2.0 et est utilisé pour
+\textbf{l'authentification} (contrairement à OAuth2.0 qui est pour
+\textbf{l'autorisation}). Le processus est exactement le même, à part l'étape 5
+où une information supplémentaire est donnée.
+Dans le standard OAuth2.0, il faut remarquer que le jeton est temporaire, aléatoire et
+unique. Ces caractéristiques impliquent que étant donnés deux jetons pour deux
+codes d'autorisation différents, le client est
+incapable de savoir si l'utilisateur ayant autorisé est le même : OAuth2.0
+ne permet donc pas d'authentifier/d'identifier un utilisateur, il ne permet que l'autorisation.
+
+OpenID Connect vient combler ce manque en générant et en renvoyant en plus du
+jeton OAuth2.0, un deuxième jeton, appelé
+\emph{jeton d'identification} (ou \emph{ID token} dans le standard) qui sera la
+signature de l'utilisateur. Ce token utilise le standard JSON Web Token (JWT),
+décrit ci-dessous. Le serveur d'autorisation identifie chaque utilisateur par
+une clef unique (par exemple l'ID de l'utilisateur dans la base de données\footnote{Bien que c'est un mauvais choix pour
+  des raisons de sécurité.}). Le jeton d'identification est créé à partir de
+cette clef unique en la renseignant dans le champ \emph{sub} du payload du jeton
+d'identification.
+Le client peut alors, à la lecture du jeton d'identification, connaitre
+l'utilisateur qui l'a autorisé.
+
+%Un exemple concret d'utilisation d'OpenID Connect dans le cas de Be Sport serait
+%le suivant
+%Le sportif possède un compte sur Be Sport
+%et souhaite communiquer avec ses connexions Be Sport à travers un tchat fourni
+%par l'application Be Sport Chat. Il souhaite utiliser un seul et unique compte,
+%celui de Be Sport, pour l'application Be Sport et Be Sport Chat et ce afin
+%d'éviter de devoir créer un compte sur Be Sport Chat avec un nouveau mot de
+%passe et une demande d'adresse email. Cependant, il ne souhaite pas que Be Sport
+%Chat puisse accéder à différentes données inutiles pour cette application (par
+%exemple les événements auxquels ils participent).
+
+\subsubsection*{Implémentation}
+
+Après avoir lu la RFC d'OAuth2.0 et le site d'OpenID, j'ai commencé une implémentation d'un serveur
+et d'un client OAuth2.0 et OpenID Connect. Mon travail est visible, expliqué et documenté
+dans une pull request sur le dépot GitHub d'Ocsigen Start \cite{ocsigen-start-github}.
 
 
 \subsection{JWT : Json Web Token}
 
 Comme dit précédemment, OpenID Connect utilise le standard JWT (Json Web
 Token)\cite{official-jwt-website, official-openid-connect-website, rfc-jwt}
-pour représenter de manière sécurisée des demandes (\textbf{claims} en anglais) et les
-transférer entre deux applications en utilisant des \textit{jetons} (ou
+pour représenter de manière sécurisée des déclarations (\textbf{claims} en anglais) et les
+transférer entre deux applications en utilisant un \textit{jeton} (ou
 \textit{token} en anglais).
 Aucune bibliothèque n'existant en OCaml pour gérer ce standard, j'ai du
 l'implémenter. La bibliothèque est disponible sur le GitHub de Be
 Sport\cite{ocaml-jwt-github} ainsi que
 dans OPAM sous le nom \emph{jwt} et est distribué sous licence LGPL.
 
-Un JSON Web Token est une chaine de caractères composé de trois éléments séparés
+Un JSON Web Token est une chaine de caractères composée de trois éléments séparés
 par des points:
 \begin{itemize}
-  \item un \textit{header} comprenant le type du jeton (dans notre cas
-    \emph{JWT}) et l'algorithme de chiffrement (par exemple
-    \emph{HMAC-SHA-256}, identifié par \\ \emph{HS256})
+  \item un en-tête (\textit{header}) comprenant le type du jeton (dans notre cas
+    \emph{JWT}) et un algorithme de chiffrement (par exemple
+    \emph{HMAC-SHA-256}, identifié par \emph{HS256})
     représenté par un JSON. Le premier élément du JSON Web Token est le
     résultat de ce JSON en utilisant l'encodage base64\cite{rfc-base64}.
-  \item les \textit{claims} ou le \textit{payload} comprenant les demandes ou
-    des méta données devant être transférées. Le résultat est aussi représenté
-    par un JSON encodé en utilisant l'encodage base64.
+  \item les déclarations (\textit{claims}) ou encore le contenu
+    (\textit{payload}) comprenant les déclarations ou méta-données devant être
+transférées. Le résultat est aussi représenté par un JSON encodé en utilisant
+l'encodage base64.
   \item la \textit{signature} qui fournit à ce standard un niveau de sécurité
     pour la transmission des données. Elle consiste en le résultat du chiffrement
-    (par l'algorithme de chiffrement donné dans le header) de la concaténation des
+    (par l'algorithme de chiffrement donné dans l'en-tête) de la concaténation des
     deux encodages base64 précédents séparés par un point. Si l'algorithme de
     chiffrement utilisé est \emph{HS256}, une clef secrète est utilisée pour
     chiffrer. La chaîne de caractères résultante du chiffrage est encodée en
@@ -94,8 +225,8 @@ La bibliothèque OCaml \emph{jwt}\cite{ocaml-jwt-github} fournit une interface
 simple pour créer, chiffrer et déchiffrer un JWT.
 
 Un token est représenté par un type abstrait \verb|t|. Le token chiffré peut
-être généré grâce à la fonction \verb|token_of_t|. Le header et les différents
-claims peuvent être reconstitués en JSON en utilisant la fonction
+être généré grâce à la fonction \verb|token_of_t|. L'en-tête et les différentes
+déclarations peuvent être reconstitués en JSON en utilisant la fonction
 \verb|t_of_token|.
 
 Au niveau des algorithmes de chiffrement,
@@ -103,17 +234,17 @@ Au niveau des algorithmes de chiffrement,
 HS256 est supporté\footnote{Car uniquement cette méthode est utilisée pour OpenID
   Connect}. Les différents algorithmes sont contenus dans un type somme \verb|algorithm|.
 
-Un header est représenté par un type abstrait \verb|header| et une valeur de ce
+Un en-tête  est représenté par un type abstrait \verb|header| et une valeur de ce
 type peut être créé grâce à la fonction \verb|header_of_algorithm_and_type|.
 
-Une claim est représentée par un type abstrait \verb|claim| et une liste de
-claim usuel sont déjà définis (comme \emph{iss}, \emph{sub} et \emph{exp} qui
-sont utilisés dans OpenID Connect). De nouveau claims peuvent être créées en
-utilisant la fonction \verb|claim| qui prend le nom en paramètre. 
+Une déclaration est représentée par un type abstrait \verb|claim| et une liste de
+déclarations usuelles est déjà définie (comme \emph{iss}, \emph{sub} et \emph{exp} qui
+sont utilisées dans OpenID Connect). De nouvelles déclarations peuvent être
+créées en utilisant la fonction \verb|claim| qui prend le nom en paramètre.
 
-Le payload, c'est-à-dire l'ensemble des claims, peut être créé à travers la
+Le contenu, c'est-à-dire l'ensemble des déclarations, peut être créé à travers la
 valeur \verb|empty_payload| et la fonction \verb|add_claim|.
-Pour obtenir les différentes claims d'un payload, la fonction \verb|find_claim|
+Pour obtenir les différentes déclarations d'un payload, la fonction \verb|find_claim|
 peut être utilisée.
 
 \subsection{Récupération de données, json2ical et binding à \\ Node.js  et Nightmare}
@@ -125,13 +256,12 @@ Afin de fournir le plus de nouvelles à ses utilisateurs, Be Sport récupère le
 données de différents sites comme \href{https://eurosport.fr}{Eurosport} pour le
 football ou \href{https://atpworldtour.com}{atpworldtour} pour le tennis.
 Cette tâche nécessite d'analyser comment le site visé fonctionne et automatiser
-la visualisation des données souhaitées.
+la récupération des données souhaitées.
 
 Dans les premiers jours, il m'a été demandé de récupérer les résultats provenant
 du site \verb|www.atpworldtour.com|.
 Une première version stable a été écrite à l'aide de JavaScript et de
-Nightmare\cite{nightmare-website}. Cette version exportait les données vers un
-format JSON. Cependant, le format demandé par Be Sport était
+Nightmare\cite{nightmare-website}. Le format de sortie demandé par Be Sport était
 iCalendar avec des champs spécifiques.
 Un match, une compétition ou un résultat est représenté par un événement
 iCalendar (composant \verb|VEVENT|) et possède obligatoirement un ID. Les
@@ -139,6 +269,8 @@ matches sont représentés comme des sous-événements des compétitions et
 possèdent, dans le format iCalendar, un champ supplémentaire
 (\verb|X-PARENT-ID|) afin de pouvoir retrouver la compétition dont les matches
 proviennent.
+Cependant, mon script exportait les données vers un
+format JSON. 
 
 \subsubsection*{json2ical}
 
@@ -158,7 +290,7 @@ fonction, \verb|json_to_ical| qui prend en paramètre:
   \item (optionnel) un entier représentant l'ID du premier événement.
 \end{itemize}
 
-Par exemple, avec la configuration par défaut,
+Par exemple, avec la configuration par défaut, le JSON
 
 \begin{lstlisting}
   {
@@ -230,8 +362,9 @@ ceux-ci sont fonctionnels et nous ont permis d'améliorer notre productivité.
 
 \subsubsection*{Interface OCaml pour l'importation dans la base de données}
 
-Egalement avec Omar Chebib, après avoir fini notre script de récupération de
-données, il nous a été demandé d'importer les données dans la base de données de
+Egalement avec Omar Chebib, après avoir fini la deuxième version de nos
+scripts respectifs, il nous a été demandé d'importer les données dans la base de
+données (sous PostgreSQL) de
 Be Sport. Les données récupérées comprennent les championnats, le nom des
 équipes ainsi que le nom des joueurs et doivent être importées selon un schéma
 de tables bien définies. Chaque site a ses propres tables.
@@ -324,14 +457,17 @@ non-exhaustive:
     distribution GNU/Linux. Il m'a fallu rendre les Makefiles compatibles avec
     BSD car ils ne l'étaient pas défaut et il était donc impossible d'utiliser
     le template sur une machine disposant des outils BSD.
-  \item Remise en place de l'intégration continue avec Travis. Depuis quelques
-    mois, voire quelques années, l'intégration continue ne fonctionnait pas et
-    des emails étaient envoyés à chaque commit sur le dépot GitHub.
+  \item Remise en place de l'intégration continue avec Jenkins/Travis. Depuis quelques
+    mois, voire quelques années, l'intégration continue avec Jenkins ne
+    fonctionnait pas et des emails étaient envoyés à chaque commit sur le dépot
+    GitHub. J'ai également intégré par la suite l'intégration continue avec
+    Travis car le Jenkins installé ne fonctionne pas actuellement pour les pull
+   requests.
   \item API de la bibliothèque. Une très grande partie de la bibliothèque
     d'Ocsigen Start n'était pas documenté: j'ai alors passé plusieurs jours à la
     documenter. Cela m'a permis d'avoir une vue plus globale sur tout le projet.
-  \item Utilisation des section \verb|let%section| à la place des blocs
-    \verb|[%%section.start]| et \verb|[%%section expr]|. L'utilisation de
+  \item Utilisation des section \verb|let%section| à la place des blocs \\
+    \verb|[%%section.start]| et \verb|[%%section expr]|. L'utilisation de \\
     \verb|let%section| rend le code plus lisible.
   \item Suppression de la dépendance au binding à ImageMagick. Une seule
     fonction dans le module \verb|Os_uploader| utilisait le binding pour la
@@ -397,15 +533,15 @@ et le serveur de Be Sport.
 
 \begin{enumerate}
   \item le smartphone demande un identifiant unique au serveur de Google. Cet
-    identifiant sera la signature de l'appareil et sera utilisée par le serveur
+    identifiant sera la signature de l'appareil et sera utilisé par le serveur
     de Be Sport pour envoyer une notification sur cet appareil.
   \item le serveur de Google renvoie l'identifiant unique.
   \item l'appareil envoie l'identifiant sur le serveur de Be Sport pour que ce
     dernier puisse cibler l'appareil.
   \item dans le cas d'un besoin de persistance, l'identifiant est stocké dans la base de données.
   \item lorsque Be Sport souhaite envoyer une notification à l'appareil, il
-    effectue une requête POST à l'URL \verb|https://fcm.googleapis.com/fcm/send|
-    en donnant en paramètre certaines options ainsi que l'identifiant de
+    effectue une requête POST à l'URL \\ \verb|https://fcm.googleapis.com/fcm/send|
+    en donnant en \\ paramètre certaines options ainsi que l'identifiant de
     l'appareil. Cette étape est abstraite par le module OCaml
     \verb|Os_fcm_notif| disponible dans Ocsigen Start
   \item dès que l'appareil est connecté au réseau internet, le serveur de Google
@@ -433,24 +569,45 @@ est développé en utilisant une version modifiée du template d'Ocsigen Start q
 ne contient pas de base de données mais garde l'avantage du duo application
 mobile - application web.
 
-Cette démonstration permet d'envoyer différents types de notifications comme le
-montre les figures \ref{fig:push_notification_example_application_web} et \ref{fig:push_example_notification_application_result}.
-
-\begin{figure}
-  \centering
-  \includegraphics[height=200px]{push-notification-diagram.png}
-  \caption{Exemple d'application montrant différents types de notifications push}
-  \label{fig:push_notification_example_application_web}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics[height=200px]{push-notification-diagram.png}
-  \caption{Notifications push reçu sur un smartphone Android.}
-  \label{fig:push_notification_example_application_result}
-\end{figure}
+%Cette démonstration permet d'envoyer différents types de notifications comme le
+%montre les figures \ref{fig:push_notification_example_application_web} et \ref{fig:push_example_notification_application_result}.
+%
+%\begin{figure}
+%  \centering
+%  \includegraphics[height=200px]{push-notification-diagram.png}
+%  \caption{Exemple d'application montrant différents types de notifications push}
+%  \label{fig:push_notification_example_application_web}
+%\end{figure}
+%
+%\begin{figure}
+%  \centering
+%  \includegraphics[height=200px]{push-notification-diagram.png}
+%  \caption{Notifications push reçu sur un smartphone Android.}
+%  \label{fig:push_notification_example_application_result}
+%\end{figure}
 
 \subsubsection*{i18n}
+
+La dernière tâche que j'ai réalisée est l'internationalisation (i18n) du template
+d'Ocsigen Start. Cela permet d'avoir une application dans
+plusieurs \\ langues.
+
+Dans la base de données, un champ \verb|language| est ajouté à la table des
+utilisateurs enregistrés.
+
+Lorsqu'une personne visite l'application, la langue est détectée grâce aux
+informations données par l'en-tête HTTP. Si la langue de l'utilisateur n'est pas
+supportée, une langue par défaut est sélectionné Lors de la création d'un compte, la
+langue est alors enregistrée.
+
+L'implémentation utilise \verb|ocsigen-i18n| \cite{ocsigen-i18n}. Cette
+bibliothèque fournit un binaire, \verb|i18n-generate| qui, à partir d'un fichier
+TSV (\og tabulation-separated values \fg) contenant toutes les traductions et
+des arguments comme la liste des langues supportées et une langue par défaut,
+génère un module Eliom comprenant des fonctions pour chaque traduction. La
+gestion de la langue de l'utilisateur courant est également supportée, coté
+serveur et coté client, en utilisant les principes d'Eliom.
+
 
 \subsection{Personnelles}
 
@@ -463,7 +620,7 @@ les jours suivants. Voici une liste non exhaustive:
   \item eliom-distillery : option \verb|-y| pour ne pas demander de confirmation lors
     de la création d'un projet.
   \item eliom-distillery : options \verb|-add-git-template| et
-\verb|-rm-template| pour permettre d'ajouter ses propres templates Eliom.\cite{eliom-distillery-repo}
+\verb|-rm-template| \\ pour permettre d'ajouter ses propres templates Eliom.\cite{eliom-distillery-repo}
   \item Binding OCaml au plugin Cordova
     \href{https://github.com/fechanique/cordova-plugin-fcm}{cordova-plugin-fcm}.\cite{ocaml-cordova-plugin-fcm} \\
     Celui-ci s'ajoute à la liste des bindings que j'ai réalisés pendant

@@ -7,7 +7,7 @@ et un média centrés sur le sport. Initialement lancé en 2012 à San Francisco
 aux États-Unis, Be Sport s'est implanté à Paris fin 2015 sous la
 direction de Philippe Robert, principal investisseur, et de membres de l'équipe d'Ocsigen.
 
-Contrairement à la grande majorité des plateformes du sport qui se concentrent
+Contrairement à la grande majorité des plateformes du sport qui se \\ concentrent
 sur les professionnels, Be Sport est une plateforme regroupant tous les
 types d'acteurs du sport: amateurs, professionnels, clubs, fédérations, médias,
 etc.
@@ -65,8 +65,8 @@ lourds.
 Bien que la plupart des points soient résolus indépendemment par plusieurs
 technologies (Node.js\cite{nodejs-website}, Meteor\cite{meteor-website},
 Scala\cite{scala-website} + Play\cite{play-website} +
-ScalaJS\cite{scalajs-website}, entre autres), aucune technologie unique, à ma
-connaissance, répond à tous les besoins.
+ScalaJS\cite{scalajs-website}, entre autres), aucune technologie unique et
+connue du grand public, répond à tous les besoins.
 
 Le projet Ocsigen répond à chacun de ces besoins, et même plus. Le projet est
 composé de plusieurs sous projets dont
@@ -80,8 +80,8 @@ que bas-niveau) au DOM et à la librairie standard JavaScript. Une particularit�
 de js\_of\_ocaml comparé à d'autres compilateurs/transpileurs OCaml vers
 JavaScript est le support de tout le langage OCaml, sans syntaxe particulière.
   \item une bibliothèque implémentant le standard XML de manière typée en OCaml,
-TyXML\cite{ocsigen-tyxml-github}. Cela permet d'écrire en particulier de l'HTML
-typé et de respecter ainsi les normes W3C.
+TyXML\cite{ocsigen-tyxml-github}. Cela permet d'écrire en particulier du HTML
+typé et de respecter les normes du W3C.
   \item Eliom, qui permet d'écrire, avec un haut niveau
     d'abstraction et des concepts innovants, des applications web
 client-serveur. Eliom dépend de Ocsigen Server, TyXML et js\_of\_ocaml et
@@ -104,18 +104,18 @@ grande importance lors de mon stage.
 Le but principal d'Ocsigen est d'unifier le développement de la partie serveur
 et la partie cliente en utilisant un langage unique et typé statiquement.
 
-Eliom est le centre du projet Ocsigen (avec comme dépendances Ocsigen Server et
-js\_of\_ocaml) et constitue la solution aux besoins donnés ci-dessus.
+Eliom est le centre du projet Ocsigen (avec comme dépendances Ocsigen Server,
+TyXML et js\_of\_ocaml) et constitue la solution aux besoins donnés ci-dessus.
 Eliom fournit également une interface de haut
 niveau pour des besoins usuels en programmation web comme un système de
-notifications (\verb|Eliom_notif|), de création d'HTML réactif
+notifications \\ (\verb|Eliom_notif|), de création d'HTML réactif
 (\verb|Eliom_shared.React.S|) et des données réactives
 (\verb|Eliom_shared.ReactiveData|), d'échange de données entre clients
 (\verb|Eliom_bus|), de créations de services pour les routes de l'application et
-des enregistrements de ces services (\verb|Eliom_service| et
+des enregistrements de ces services (\verb|Eliom_service| et \\
 \verb|Eliom_registration|), un système de gestion de cookies
-(\verb|Eliom_cookies|), création de formulaires typés
-(\verb|Eliom_form|), un système de RPC (en utilisant la fonction \\
+\\ (\verb|Eliom_cookies|), création de formulaires typés
+(\verb|Eliom_form|), un système de RPC (en utilisant la fonction
 \verb|Eliom_client.server_function|) et bien plus.
 
 De plus, depuis Eliom 6, il est possible d'écrire des applications mobiles.
@@ -152,7 +152,7 @@ coté serveur, de calculer une expression coté client et d'en récupérer le
 résultat coté serveur.
 La syntaxe utilisée est \verb|let%server x = [%client 5 + 2]|.
 
-Si plusieurs xpressions doivent être évaluées coté serveur (resp. coté client),
+Si plusieurs expressions doivent être évaluées coté serveur (resp. coté client),
 il est possible d'utiliser la syntaxe \verb|[%%server expressions]| (resp. \\
 \verb|[%%client expressions]|) dans les fichiers \verb|eliom| et la syntaxe \\
 \verb|[%%server.start] expressions| (resp. \\ \verb|[%%client.start] expressions|)
@@ -181,10 +181,10 @@ RPC\footnote{Remote Procedure Calls}, les notifications à travers
 Le template fourni permet également d'avoir une application mobile (Android,
 iOS, Windows Phone) de l'application web développée. Le framework web et mobile
 Cordova est utilisé pour l'application Android et iOS tandis que le concept
-d'Universal Web App est utilisée pour Windows Phone\footnote{Ceci en raison de
+d'Universal Web App est utilisé pour Windows Phone\footnote{Ceci en raison de
   la faible compatibilité des plugins Cordova sous Windows Phone.}.
 
-Ocsigen Start réalise des choix pour les développeurs comme PostgreSQL ou SASS
-(pré-processeur CSS).
+Ocsigen Start réalise des choix pour les développeurs comme PostgreSQL pour la
+base de données ou SASS (pré-processeur CSS) pour le style.
 Dans les prochaines versions, Ocsigen Start devrait être compatible avec
 différents gestionnaires de bases de données comme MySQL.
