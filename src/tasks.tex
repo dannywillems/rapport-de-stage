@@ -151,9 +151,9 @@ jeton OAuth2.0, un deuxième jeton, appelé
 \emph{jeton d'identification} (ou \emph{ID token} dans le standard) qui sera la
 signature de l'utilisateur. Ce token utilise le standard JSON Web Token (JWT),
 décrit ci-dessous. Le serveur d'autorisation identifie chaque utilisateur par
-une clef unique (par exemple l'ID de l'utilisateur dans la base de données\footnote{Bien que c'est un mauvais choix pour
+une clé unique (par exemple l'ID de l'utilisateur dans la base de données\footnote{Bien que c'est un mauvais choix pour
   des raisons de sécurité.}). Le jeton d'identification est créé à partir de
-cette clef unique en la renseignant dans le champ \emph{sub} du payload du jeton
+cette clé unique en la renseignant dans le champ \emph{sub} du payload du jeton
 d'identification.
 Le client peut alors, à la lecture du jeton d'identification, connaitre
 l'utilisateur qui l'a autorisé.
@@ -180,7 +180,7 @@ dans une pull request sur le dépot GitHub d'Ocsigen Start \cite{ocsigen-start-g
 
 Comme dit précédemment, OpenID Connect utilise le standard JWT (Json Web
 Token)\cite{official-jwt-website, official-openid-connect-website, rfc-jwt}
-pour représenter de manière sécurisée des déclarations (\textbf{claims} en anglais) et les
+pour représenter de manière sécurisée des déclarations (\emph{claims} en anglais) et les
 transférer entre deux applications en utilisant un \textit{jeton} (ou
 \textit{token} en anglais).
 Aucune bibliothèque n'existant en OCaml pour gérer ce standard, j'ai du
@@ -204,7 +204,7 @@ l'encodage base64.
     pour la transmission des données. Elle consiste en le résultat du chiffrement
     (par l'algorithme de chiffrement donné dans l'en-tête) de la concaténation des
     deux encodages base64 précédents séparés par un point. Si l'algorithme de
-    chiffrement utilisé est \emph{HS256}, une clef secrète est utilisée pour
+    chiffrement utilisé est \emph{HS256}, une clé secrète est utilisée pour
     chiffrer. La chaîne de caractères résultante du chiffrage est encodée en
     utilisant l'encodage base64 et représentera le dernier élément du jeton.
 \end{itemize}
@@ -215,7 +215,7 @@ l'encodage base64.
   \caption{Schéma expliquant la structure d'un JSON Web Token. Le jeton qui sera
     échangé entre les deux applications est la chaîne de caractère. Les parties header
     et claims résultent de l'encodage base64 des JSON respectifs. La signature
-    est générée grâce à l'algorithme HS256 en utilisant une clef secrète qui
+    est générée grâce à l'algorithme HS256 en utilisant une clé secrète qui
     n'est pas donnée dans ce cas.}
 \end{figure}
 
@@ -283,7 +283,7 @@ fonction, \verb|json_to_ical| qui prend en paramètre:
 
 \begin{itemize}
   \item un objet JavaScript (représentant le JSON).
-  \item (optionnel) un ensemble de clef-valeur permettant de définir comment les champs JSON
+  \item (optionnel) un ensemble de clé-valeur permettant de définir comment les champs JSON
     vont être convertis dans le format iCalendar. Par défaut, chaque champ du
     JSON est préfixé par \verb|X-| (norme utilisée pour Be Sport). Dans tous les
     cas, le nom du champ est mis en majuscule.
@@ -597,12 +597,12 @@ utilisateurs enregistrés.
 
 Lorsqu'une personne visite l'application, la langue est détectée grâce aux
 informations données par l'en-tête HTTP. Si la langue de l'utilisateur n'est pas
-supportée, une langue par défaut est sélectionné Lors de la création d'un compte, la
+supportée, une langue par défaut est sélectionnée. Lors de la création d'un compte, la
 langue est alors enregistrée.
 
 L'implémentation utilise \verb|ocsigen-i18n| \cite{ocsigen-i18n}. Cette
 bibliothèque fournit un binaire, \verb|i18n-generate| qui, à partir d'un fichier
-TSV (\og tabulation-separated values \fg) contenant toutes les traductions et
+TSV\footnote{Tabulation-Separated Values} contenant toutes les traductions et
 des arguments comme la liste des langues supportées et une langue par défaut,
 génère un module Eliom comprenant des fonctions pour chaque traduction. La
 gestion de la langue de l'utilisateur courant est également supportée, coté

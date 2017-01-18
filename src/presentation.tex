@@ -46,19 +46,19 @@ plusieurs problématiques du développement d'applications web:
     embaucher deux développeurs: un pour le coté client, souvent appelé
     \og développeur front-end \fg, et un autre pour le coté serveur, souvent appelé
     \og développeur back-end \fg.
-  \item pouvoir, dans un seul fichier, décrire les morceaux de code qui seront
+  \item décrire, dans un seul fichier, les morceaux de code qui seront
 exécutés coté client et ceux qui seront exécutés coté serveur. Ceci est réalisé
 à travers une extension de syntaxe PPX d'OCaml\footnote{Gabriel Radanne, aka
   Drup, travaille sur un compilateur Eliom, voir
   \cite{ocsigen-eliomlang-github}. Ce compilateur fournit plus de possibilités
   que PPX.}.
-  \item permettre d'injecter du code serveur dans la partie cliente.
+  \item injecter du code serveur dans la partie cliente.
     L'utilité de cette fonctionnalité est de laisser le serveur évaluer
 des expressions pour décharger le client de certains calculs qui pourraient être
 lourds.
   \item typer statiquement (au moment de la compilation, non à l'exécution), les
     programmes (coté serveur et coté client) ainsi que le code injecté.
-  \item pouvoir utiliser les bibliothèques du langage de base (OCaml), que cela
+  \item utiliser les bibliothèques du langage de base (OCaml), que cela
     soit coté client ou coté serveur.
 \end{enumerate}
 
@@ -173,7 +173,7 @@ modification de données personnelles), permettre de gérer plusieurs emails par
 utilisateurs, le redimensionnement et cropping de photos et fournir des systèmes
 de sessions et de cache.
 
-En plus de la bibliothèque, Ocsigen Start fournit un un template qui montre
+En plus de la bibliothèque, Ocsigen Start fournit un template qui montre
 comment utiliser les diverses fonctionnalités d'Eliom comme les
 RPC\footnote{Remote Procedure Calls}, les notifications à travers
 \verb|Eliom_notif| mais aussi les fonctions de la bibliothèque.
